@@ -7,8 +7,8 @@ import json                                                     # Pre prácu s J
 app = Flask(__name__)
 
 # Do premenných Načítame Google API kľúč a Custom Search Engine ID z prostredia Google aby sme obišli CAPTCHA overenie
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'AIzaSyAClll1X7ee2Kx5UFPeAlAg2tosuOf4uxo')
-GOOGLE_CX = os.getenv('GOOGLE_CX', '300983c5d1cf74437')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'VÁŠ_GOOGLE_API_KEY')
+GOOGLE_CX = os.getenv('GOOGLE_CX', 'VÁŠ_GOOGLE_CX')
 
 # Názov súboru, do ktorého sa budú ukladať výsledky vyhľadávania
 RESULTS_FILE = 'results.json'
