@@ -1,0 +1,142 @@
+<!--
+  index.html - jednoduchá webová stránka s formulárom na vyhľadávanie pomocou Google Scraper API.
+
+  Stránka obsahuje:
+  - Formulár s textovým inputom a tlačidlom na odoslanie dotazu.
+  - Div pre zobrazenie chýb.
+  - Div pre zobrazenie výsledkov vyhľadávania.
+  - JavaScript na spracovanie formulára a komunikáciu s backendom cez fetch.
+-->
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Google Scraper</title>
+  <style>
+    /* Štýly pre lepší vzhľad formulára a výsledkov */
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 10px;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 70%;
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 8px 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #results {
+      white-space: normal;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    a {
+      color: #1a0dab;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .error {
+      color: red;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Vyhledávač</h1>
+  
+  <!-- Formulár na zadanie vyhľadávacieho dopytu -->
+  <form id="searchForm">
+    <input type="text" id="query" placeholder="Zadej hledaný výraz" required />
+    <button type="submit">Vyhledat</button>
+  </form>
+  
+  <!-- Div pre chybové hlásenia -->
+  <div id="error" class="error"></div>
+  
+  <!-- Div pre zobrazenie výsledkov -->
+  <div id="results"></div>
+
+  <script>
+    // Pridáme event listener na odoslanie formulára
+    document.getElementById("searchForm").addEventListener("submit", async function (e) {
+      e.preventDefault();  // Zabraňuje reloadu stránky pri odoslaní formulára
+
+      const queryInput = document.getElementById("query");    // Textové pole
+      const query = queryInput.value.trim();                  // Vyčistíme medzery
+      const resultsDiv = document.getElementById("results");  // Kde budú výsledky
+      const errorDiv = document.getElementById("error");      // Kde budú chyby
+
+      // Vyčistíme predošlé výsledky a chyby
+      resultsDiv.innerHTML = '';
+      errorDiv.textContent = '';
+
+      // Ak je prázdny vstup, zobrazíme chybu a končíme
+      if (!query) {
+        errorDiv.textContent = 'Prosím, zadejte hledaný výraz.';
+        return;
+      }
+
+      try {
+        // Zavoláme backend endpoint /search s query parametrom
+        const res = await fetch("/search?q=" + encodeURIComponent(query));
+
+        // Ak server vráti chybu, vyhodíme výnimku
+        if (!res.ok) {
+          throw new Error('Chyba při načítání výsledků');
+        }
+
+        const data = await res.json();  // Spracujeme JSON odpoveď
+
+        // Ak odpoveď obsahuje kľúč "error", zobrazíme ho
+        if (data.error) {
+          errorDiv.textContent = data.error;
+          return;
+        }
+
+        // Ak nie sú žiadne výsledky, zobrazíme hlásenie
+        if (data.length === 0) {
+          resultsDiv.textContent = 'Žádné výsledky.';
+          return;
+        }
+
+        // Vytvoríme <ul> zoznam výsledkov
+        const ul = document.createElement('ul');
+        data.forEach(item => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = item.url;                        // URL výsledku
+          a.textContent = item.title;               // Text odkazu (názov)
+          a.target = '_blank';                      // Otvorí odkaz v novej záložke
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+
+        // Pridáme zoznam do výsledkového divu
+        resultsDiv.appendChild(ul);
+
+        // Po úspešnom vyhľadávaní vyčistíme input pole
+        queryInput.value = '';
+
+      } catch (err) {
+        // Ak nastane chyba (napr. sieťová), zobrazíme ju
+        errorDiv.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
